@@ -1,0 +1,55 @@
+{
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8443,
+    "http_port": 10000,
+    "enable_http": true,
+    "threads": 4,
+    "timeout": 30,
+    "home_folder": "/home/ac/app/http_srv/deploy/web1",
+    "keepalive": {
+      "enabled": true,
+      "max_requests": 100,
+      "timeout": 300
+    },
+    "ssl": {
+      "cert_path": "/home/ac/app/http_srv/myCA/server.crt",
+      "key_path": "/home/ac/app/http_srv/myCA/server.key"
+    }
+  },
+  "authentication": {
+    "enabled": true,
+    "database_path": "/home/ac/app/http_srv/deploy/web1/db/users.db",
+    "session_lifetime": 86400,
+    "extend_session_on_activity": true,
+    "create_user_folders": true,
+    "smtp": {
+      "server": "smtp://smtp.gmail.com:587",
+      "username": "antonio.cipolletti@gmail.com",
+      "password": "kcsicnrlvtvdmief",
+      "from": "antonio.cipolletti@gmail.com"
+    }
+  },
+  "logging": {
+    "level": "debug",
+    "file": "/home/ac/app/http_srv/deploy/web1/logs/server.log",
+    "console": true
+  },
+  "routes": [
+    {
+      "path": "/",
+      "method": "GET",
+      "local_file": "/index.html"
+    },
+    {
+      "path": "/landing",
+      "method": "GET",
+      "local_file": "/landing.html"
+    },
+    {
+      "path": "/fs",
+      "method": "GET",
+      "local_file": "/fs.html"
+    }
+  ]
+}

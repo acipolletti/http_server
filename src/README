@@ -1,0 +1,156 @@
+Flusso di Autenticazione con Session Cookie
+1. Registrazione Utente
+Client                          Server
+  |                               |
+  |-- POST /auth/register ------> |
+  |   {username, email, password} |
+  |                               |
+  |                               |-- Valida input
+  |                               |-- Genera salt
+  |                               |-- Hash password + salt
+  |                               |-- Salva in DB
+  |                               |-- Genera codice verifica
+  |                               |-- Invia email
+  |                               |
+  |<-- 200 OK ------------------- |
+  |   {success: true, message}    |
+2. Verifica Email
+Client                          Server
+  |                               |
+  |-- POST /auth/verify --------> |
+  |   {username, code}            |
+  |                               |
+  |                               |-- Controlla codice
+  |                               |-- Aggiorna is_verified=1
+  |                               |
+  |<-- 200 OK ------------------- |
+  |   {success: true}             |
+3. Login e Creazione Sessione
+Client                          Server
+  |                               |
+  |-- POST /auth/login ---------> |
+  |   {username, password}        |
+  |                               |
+  |                               |-- Verifica credenziali
+  |                               |-- Genera session token
+  |                               |-- Salva in DB:
+  |                               |   - user_id
+  |                               |   - token
+  |                               |   - expires_at
+  |                               |
+  |<-- 200 OK ------------------- |
+  |   Headers:                    |
+  |   Set-Cookie: session=xyz123; |
+  |               HttpOnly;        |
+  |               Secure;          |
+  |               SameSite=Strict; |
+  |               Max-Age=86400    |
+  |                               |
+  |   Body: {success: true,       |
+  |          redirect: "/"}        |
+4. Richieste Autenticate
+Client                          Server
+  |                               |
+  |-- GET /dashboard -----------> |
+  |   Headers:                    |
+  |   Cookie: session=xyz123      |
+  |                               |
+  |                               |-- Estrae session token
+  |                               |-- Valida nel DB:
+  |                               |   - Token esiste?
+  |                               |   - Non scaduto?
+  |                               |-- Recupera user info
+  |                               |-- Genera contenuto
+  |                               |
+  |<-- 200 OK ------------------- |
+  |   {contenuto personalizzato}  |
+5. Sessione Non Valida/Scaduta
+Client                          Server
+  |                               |
+  |-- GET /protected-page ------> |
+  |   Headers:                    |
+  |   Cookie: session=invalid     |
+  |                               |
+  |                               |-- Token non valido/scaduto
+  |                               |
+  |<-- 302 Redirect ------------- |
+  |   Location: /auth/login       |
+  |   Set-Cookie: session=;       |
+  |               Max-Age=0        |
+Dettagli Implementativi
+1. Struttura del Cookie di Sessione
+cpp// Creazione del cookie (in auth.cpp)
+std::string AuthManager::createSessionCookie(const std::string& token) {
+    return "session=" + token + 
+           "; HttpOnly" +      // Non accessibile via JavaScript
+           "; Secure" +        // Solo HTTPS
+           "; SameSite=Strict" + // Protezione CSRF
+           "; Path=/" +        // Valido per tutto il sito
+           "; Max-Age=" + std::to_string(session_lifetime);
+}
+2. Validazione della Sessione
+cpp// In ogni richiesta (handle_client)
+1. Estrai cookie dall'header: Cookie: session=xyz123
+2. Chiama extractSessionFromCookies() per ottenere il token
+3. Chiama validateSession(token) che:
+   - Cerca nel DB: SELECT * FROM sessions WHERE token=? AND expires_at > NOW()
+   - Se valido, recupera info utente
+   - Opzionalmente estende la scadenza (extend_session_on_activity)
+3. Database Schema
+sql-- Tabella utenti
+users:
+  - id
+  - username
+  - email
+  - password_hash
+  - salt
+  - is_verified
+
+-- Tabella sessioni
+sessions:
+  - id
+  - user_id (FK)
+  - token (UNIQUE)
+  - expires_at
+  - created_at
+4. Sicurezza del Sistema
+Protezioni Implementate:
+
+HttpOnly: Cookie non accessibile via JavaScript (protezione XSS)
+Secure: Cookie trasmesso solo su HTTPS
+SameSite=Strict: Protezione CSRF
+Token casuale: 64 caratteri hex generati con RAND_bytes
+Hashing password: SHA256 con salt unico per utente
+Pulizia automatica: Thread che rimuove sessioni scadute
+
+Flusso di Logout:
+Client                          Server
+  |                               |
+  |-- POST /auth/logout --------> |
+  |   Cookie: session=xyz123      |
+  |                               |
+  |                               |-- DELETE FROM sessions
+  |                               |
+  |<-- 200 OK ------------------- |
+  |   Set-Cookie: session=;       |
+  |               Max-Age=0        |
+5. Keep-Alive e Sessioni
+Il server supporta connessioni keep-alive HTTP/1.1, ma ogni richiesta viene validata indipendentemente:
+
+Ogni richiesta HTTP include il cookie
+Ogni volta viene verificata la validità della sessione
+Le connessioni keep-alive non influenzano la sicurezza
+
+6. Gestione degli Errori
+
+Nessun cookie: Redirect a login
+Cookie non valido: Cancella cookie + redirect
+Sessione scaduta: Cancella cookie + redirect
+Utente non verificato: Messaggio di errore al login
+
+Questo sistema garantisce che:
+
+Solo utenti autenticati possano accedere alle risorse protette
+Le sessioni abbiano una scadenza temporale
+I cookie siano protetti da attacchi comuni (XSS, CSRF)
+Il logout sia completo (rimozione dal DB + cancellazione cookie)

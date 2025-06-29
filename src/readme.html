@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentazione - Flusso di Autenticazione con Session Cookie</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --code-bg: #f1f5f9;
+            --flow-arrow: #94a3b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background-color: var(--bg-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color), #1d4ed8);
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 3rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            text-align: center;
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+        }
+
+        h2 {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        h3 {
+            color: var(--text-primary);
+            margin: 1.5rem 0 1rem;
+            font-size: 1.3rem;
+        }
+
+        h4 {
+            color: var(--text-secondary);
+            margin: 1rem 0 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .flow-diagram {
+            background: var(--code-bg);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            border: 1px solid var(--border-color);
+        }
+
+        .flow-diagram pre {
+            margin: 0;
+            white-space: pre;
+        }
+
+        code {
+            background: var(--code-bg);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: var(--danger-color);
+        }
+
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            position: relative;
+        }
+
+        .code-block pre {
+            margin: 0;
+            white-space: pre;
+        }
+
+        .language-label {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: rgba(255,255,255,0.1);
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .feature-card {
+            background: var(--bg-color);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .feature-card h4 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .icon {
+            width: 24px;
+            height: 24px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .security-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .security-list li {
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            background: var(--bg-color);
+            border-radius: 6px;
+            border-left: 4px solid var(--success-color);
+            display: flex;
+            align-items: start;
+            gap: 0.75rem;
+        }
+
+        .security-list li::before {
+            content: "✓";
+            color: var(--success-color);
+            font-weight: bold;
+            margin-top: 2px;
+        }
+
+        .warning {
+            background: #fef3c7;
+            border: 1px solid #fbbf24;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            display: flex;
+            gap: 0.75rem;
+            align-items: start;
+        }
+
+        .warning::before {
+            content: "⚠";
+            color: var(--warning-color);
+            font-size: 1.2rem;
+        }
+
+        .toc {
+            background: var(--bg-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .toc h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+
+        .toc ul {
+            list-style: none;
+            padding-left: 1rem;
+        }
+
+        .toc li {
+            margin: 0.5rem 0;
+        }
+
+        .toc a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .toc a:hover {
+            color: var(--primary-color);
+        }
+
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-right: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            header h1 {
+                font-size: 2rem;
+            }
+            
+            .section {
+                padding: 1.5rem;
+            }
+            
+            .flow-diagram {
+                font-size: 0.8rem;
+                padding: 1rem;
+            }
+        }
+
+        .highlight {
+            background: #fef3c7;
+            padding: 0.1rem 0.3rem;
+            border-radius: 3px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--bg-color);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        tr:hover {
+            background: var(--bg-color);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🔐 Flusso di Autenticazione con Session Cookie</h1>
+            <p>Documentazione completa del sistema di autenticazione basato su cookie di sessione</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="toc section">
+            <h3>📑 Indice</h3>
+            <ul>
+                <li><a href="#overview">Panoramica del Sistema</a></li>
+                <li><a href="#registration">1. Registrazione Utente</a></li>
+                <li><a href="#verification">2. Verifica Email</a></li>
+                <li><a href="#login">3. Login e Creazione Sessione</a></li>
+                <li><a href="#authenticated">4. Richieste Autenticate</a></li>
+                <li><a href="#invalid">5. Sessione Non Valida/Scaduta</a></li>
+                <li><a href="#implementation">Dettagli Implementativi</a></li>
+                <li><a href="#security">Sicurezza del Sistema</a></li>
+            </ul>
+        </div>
+
+        <section id="overview" class="section">
+            <h2>📋 Panoramica del Sistema</h2>
+            <p>Il sistema di autenticazione utilizza cookie di sessione HTTP-only per mantenere lo stato di autenticazione degli utenti. Questo approccio offre un equilibrio ottimale tra sicurezza, performance e facilità d'uso.</p>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>🛡️ Sicurezza</h4>
+                    <p>Cookie HTTP-only, Secure, SameSite per protezione contro XSS e CSRF</p>
+                </div>
+                <div class="feature-card">
+                    <h4>⚡ Performance</h4>
+                    <p>Validazione rapida delle sessioni con query ottimizzate al database</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🔄 Affidabilità</h4>
+                    <p>Pulizia automatica delle sessioni scadute e gestione robusta degli errori</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="registration" class="section">
+            <h2><span class="step-number">1</span> Registrazione Utente</h2>
+            <p>Il processo di registrazione crea un nuovo account utente con email da verificare.</p>
+            
+            <div class="flow-diagram">
+                <pre>Client                          Server
+  |                               |
+  |-- POST /auth/register ------> |
+  |   {username, email, password} |
+  |                               |
+  |                               |-- Valida input
+  |                               |-- Genera salt
+  |                               |-- Hash password + salt
+  |                               |-- Salva in DB
+  |                               |-- Genera codice verifica
+  |                               |-- Invia email
+  |                               |
+  |<-- 200 OK ------------------- |
+  |   {success: true, message}    |</pre>
+            </div>
+
+            <h4>Validazioni applicate:</h4>
+            <ul class="security-list">
+                <li>Username: 3-20 caratteri, solo lettere, numeri e underscore</li>
+                <li>Email: formato valido con regex RFC-compliant</li>
+                <li>Password: minimo 8 caratteri</li>
+                <li>Controllo duplicati username/email nel database</li>
+            </ul>
+        </section>
+
+        <section id="verification" class="section">
+            <h2><span class="step-number">2</span> Verifica Email</h2>
+            <p>L'utente deve verificare il proprio indirizzo email prima di poter effettuare il login.</p>
+            
+            <div class="flow-diagram">
+                <pre>Client                          Server
+  |                               |
+  |-- POST /auth/verify --------> |
+  |   {username, code}            |
+  |                               |
+  |                               |-- Controlla codice
+  |                               |-- Verifica scadenza
+  |                               |-- Aggiorna is_verified=1
+  |                               |
+  |<-- 200 OK ------------------- |
+  |   {success: true}             |</pre>
+            </div>
+
+            <div class="warning">
+                <div>Il codice di verifica ha una validità di <strong>1 ora</strong>. Dopo la scadenza, l'utente dovrà richiedere un nuovo codice.</div>
+            </div>
+        </section>
+
+        <section id="login" class="section">
+            <h2><span class="step-number">3</span> Login e Creazione Sessione</h2>
+            <p>Il login verifica le credenziali e crea una nuova sessione con cookie sicuro.</p>
+            
+            <div class="flow-diagram">
+                <pre>Client                          Server
+  |                               |
+  |-- POST /auth/login ---------> |
+  |   {username, password}        |
+  |                               |
+  |                               |-- Verifica credenziali
+  |                               |-- Genera session token
+  |                               |-- Salva in DB:
+  |                               |   - user_id
+  |                               |   - token
+  |                               |   - expires_at
+  |                               |
+  |<-- 200 OK ------------------- |
+  |   Headers:                    |
+  |   Set-Cookie: session=xyz123; |
+  |               HttpOnly;        |
+  |               Secure;          |
+  |               SameSite=Strict; |
+  |               Max-Age=86400    |
+  |                               |
+  |   Body: {success: true,       |
+  |          redirect: "/"}        |</pre>
+            </div>
+
+            <h4>Struttura del Cookie di Sessione:</h4>
+            <div class="code-block">
+                <span class="language-label">C++</span>
+                <pre>std::string AuthManager::createSessionCookie(const std::string& token) {
+    return "session=" + token + 
+           "; HttpOnly" +      // Non accessibile via JavaScript
+           "; Secure" +        // Solo HTTPS
+           "; SameSite=Strict" + // Protezione CSRF
+           "; Path=/" +        // Valido per tutto il sito
+           "; Max-Age=" + std::to_string(session_lifetime);
+}</pre>
+            </div>
+        </section>
+
+        <section id="authenticated" class="section">
+            <h2><span class="step-number">4</span> Richieste Autenticate</h2>
+            <p>Ogni richiesta successiva include automaticamente il cookie di sessione.</p>
+            
+            <div class="flow-diagram">
+                <pre>Client                          Server
+  |                               |
+  |-- GET /dashboard -----------> |
+  |   Headers:                    |
+  |   Cookie: session=xyz123      |
+  |                               |
+  |                               |-- Estrae session token
+  |                               |-- Valida nel DB:
+  |                               |   - Token esiste?
+  |                               |   - Non scaduto?
+  |                               |-- Recupera user info
+  |                               |-- Genera contenuto
+  |                               |
+  |<-- 200 OK ------------------- |
+  |   {contenuto personalizzato}  |</pre>
+            </div>
+
+            <h4>Processo di Validazione:</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Step</th>
+                        <th>Azione</th>
+                        <th>Fallimento</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>Estrai cookie dall'header HTTP</td>
+                        <td>Redirect al login</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>Cerca token nel database</td>
+                        <td>401 Unauthorized</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>Verifica scadenza sessione</td>
+                        <td>Cancella cookie + redirect</td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>Carica informazioni utente</td>
+                        <td>500 Internal Error</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="invalid" class="section">
+            <h2><span class="step-number">5</span> Sessione Non Valida/Scaduta</h2>
+            <p>Gestione automatica delle sessioni invalide con redirect al login.</p>
+            
+            <div class="flow-diagram">
+                <pre>Client                          Server
+  |                               |
+  |-- GET /protected-page ------> |
+  |   Headers:                    |
+  |   Cookie: session=invalid     |
+  |                               |
+  |                               |-- Token non valido/scaduto
+  |                               |
+  |<-- 302 Redirect ------------- |
+  |   Location: /auth/login       |
+  |   Set-Cookie: session=;       |
+  |               Max-Age=0        |</pre>
+            </div>
+        </section>
+
+        <section id="implementation" class="section">
+            <h2>🔧 Dettagli Implementativi</h2>
+
+            <h3>Database Schema</h3>
+            <div class="code-block">
+                <span class="language-label">SQL</span>
+                <pre>-- Tabella utenti
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    salt TEXT NOT NULL,
+    is_verified BOOLEAN DEFAULT 0,
+    verification_code TEXT,
+    verification_expires INTEGER,
+    created_at INTEGER DEFAULT (strftime('%s', 'now')),
+    updated_at INTEGER DEFAULT (strftime('%s', 'now'))
+);
+
+-- Tabella sessioni
+CREATE TABLE sessions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    token TEXT UNIQUE NOT NULL,
+    expires_at INTEGER NOT NULL,
+    created_at INTEGER DEFAULT (strftime('%s', 'now')),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);</pre>
+            </div>
+
+            <h3>Configurazione Keep-Alive</h3>
+            <p>Il server supporta connessioni HTTP/1.1 keep-alive per migliorare le performance:</p>
+            <ul class="security-list">
+                <li>Timeout configurabile per connessioni inattive</li>
+                <li>Limite massimo di richieste per connessione</li>
+                <li>Ogni richiesta viene validata indipendentemente</li>
+                <li>La sicurezza non è compromessa dal riutilizzo della connessione</li>
+            </ul>
+        </section>
+
+        <section id="security" class="section">
+            <h2>🛡️ Sicurezza del Sistema</h2>
+
+            <h3>Protezioni Implementate</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>🍪 Cookie Security</h4>
+                    <ul class="security-list">
+                        <li><strong>HttpOnly</strong>: Non accessibile via JavaScript (protezione XSS)</li>
+                        <li><strong>Secure</strong>: Trasmesso solo su HTTPS</li>
+                        <li><strong>SameSite=Strict</strong>: Protezione CSRF</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h4>🔑 Password Security</h4>
+                    <ul class="security-list">
+                        <li><strong>SHA256</strong>: Hashing sicuro delle password</li>
+                        <li><strong>Salt unico</strong>: 32 caratteri per utente</li>
+                        <li><strong>Timing-safe</strong>: Confronto costante nel tempo</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h4>🎲 Token Generation</h4>
+                    <ul class="security-list">
+                        <li><strong>RAND_bytes</strong>: Generazione crittograficamente sicura</li>
+                        <li><strong>64 caratteri hex</strong>: Entropia elevata</li>
+                        <li><strong>Unicità garantita</strong>: Indice UNIQUE nel DB</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>Flusso di Logout</h3>
+            <div class="flow-diagram">
+                <pre>Client                          Server
+  |                               |
+  |-- POST /auth/logout --------> |
+  |   Cookie: session=xyz123      |
+  |                               |
+  |                               |-- DELETE FROM sessions
+  |                               |   WHERE token = ?
+  |                               |
+  |<-- 200 OK ------------------- |
+  |   Set-Cookie: session=;       |
+  |               Max-Age=0        |</pre>
+            </div>
+
+            <h3>Pulizia Automatica</h3>
+            <p>Un thread dedicato si occupa della manutenzione del database:</p>
+            <ul class="security-list">
+                <li>Rimozione sessioni scadute ogni 5 minuti</li>
+                <li>Pulizia codici di verifica scaduti</li>
+                <li>Ottimizzazione indici del database</li>
+                <li>Log delle operazioni di manutenzione</li>
+            </ul>
+
+            <div class="warning">
+                <div><strong>Nota di Sicurezza:</strong> Tutte le rotte sono protette di default. Solo quelle esplicitamente definite come pubbliche nella funzione <code>isProtectedRoute()</code> sono accessibili senza autenticazione.</div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Smooth scrolling per i link interni
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Evidenzia la sezione attiva mentre si scorre
+        const sections = document.querySelectorAll('section[id]');
+        const tocLinks = document.querySelectorAll('.toc a');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 100;
+                if (scrollY >= sectionTop) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            tocLinks.forEach(link => {
+                link.style.fontWeight = 'normal';
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.style.fontWeight = 'bold';
+                    link.style.color = 'var(--primary-color)';
+                } else {
+                    link.style.color = 'var(--text-secondary)';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
